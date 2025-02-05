@@ -1,0 +1,19 @@
+[project]
+name = "tl-sg-prometheus-exporter"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Adrian Popa"},
+]
+dependencies = [
+    "prometheus-client",
+    "PyYAML",
+    "requests>=2.32.3",
+]
+requires-python = ">=3.13.*"
+readme = "README.md"
+license = {text = "GPL"}
+
+
+[tool.pdm]
+distribution = false

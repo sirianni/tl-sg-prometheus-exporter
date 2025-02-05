@@ -12,7 +12,7 @@ from logging.config import dictConfig
 
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, InfoMetricFamily, StateSetMetricFamily, REGISTRY
 from prometheus_client import start_http_server
-    
+
 logging_config = dict(
     version = 1,
     formatters = {
@@ -54,11 +54,11 @@ class TPLinkSwitch(object):
 
         """ This is a mapping of GUI status values to their meaning """
         self.mapping = {
-            '0': "down", 
-            '1': "auto", 
-            '2': "10/half", 
-            '3': "10/full", 
-            '4': "100/half", 
+            '0': "down",
+            '1': "auto",
+            '2': "10/half",
+            '3': "10/full",
+            '4': "100/half",
             '5': "100/full",
             '6': "1000/full"
         }
@@ -71,7 +71,7 @@ class TPLinkSwitch(object):
             logger.debug("configuration['port_descriptions']: "+pprint.pformat(configuration['port_descriptions']))
             for port in configuration['port_descriptions']:
                 self.ports[port] = configuration['port_descriptions'][port]
-    
+
     def getIP(self):
         return self.ip
 
@@ -152,7 +152,7 @@ class TPLinkSwitch(object):
                             stats[p]['description'] = ""
                         stats[p]['state'] = state[int(p)-1]
                         numberOfPorts+=1
-            
+
             linkStatusMatch = re.search(r'link_status:\[([0-9,]+)\]', r.text)
             if linkStatusMatch:
                 state = linkStatusMatch.group(1).split(",")
@@ -194,8 +194,8 @@ class CustomCollector(object):
         """ This gets called when the /metrics endpoint gets scraped by each client """
 
         startTime = time.perf_counter()
-        logger.info("Collecting data...")        
-        
+        logger.info("Collecting data...")
+
         # return global metrics here
         # set up the Prometheus metrics that we'll be exporting
 
@@ -210,7 +210,7 @@ class CustomCollector(object):
             linkSpeedList.append(self.switches[0].getPortStateMapping(str(i)))
 
         linkSpeed = StateSetMetricFamily('tplink_sg_switch_port_linkSpeed', 'Link speed/duplex for each switch port', labels=['host','port'])
-        
+
         linkState = StateSetMetricFamily('tplink_sg_switch_port_linkState', 'Administrative state (enabled/disabled) for each switch port', labels=['host','port'])
 
         portDescription = InfoMetricFamily('tplink_sg_switch_port_description', 'Port descriptions for each port', labels=['host', 'port'])
@@ -246,7 +246,7 @@ class CustomCollector(object):
                             allLinkSpeed[speed] = False
 
 
-                    linkSpeed.add_metric(labels=(current_switch.getIP(), port), value=allLinkSpeed)                
+                    linkSpeed.add_metric(labels=(current_switch.getIP(), port), value=allLinkSpeed)
 
                     #prepare link status. We need to pass a dictionary with all states and booleans
                     allLinkStates = {}
@@ -257,7 +257,7 @@ class CustomCollector(object):
                         allLinkStates['disabled'] = False
                         allLinkStates['enabled'] = True
 
-                    linkState.add_metric(labels=(current_switch.getIP(), port), value=allLinkStates)                
+                    linkState.add_metric(labels=(current_switch.getIP(), port), value=allLinkStates)
 
                     #prepare port descriptions
                     portDescription.add_metric(labels=(current_switch.getIP(), port), value={'description': stats[port]['description']})
@@ -307,7 +307,7 @@ if __name__ == '__main__':
             newSwitch = TPLinkSwitch(current_switch)
             # try to log into the switch at startup
             newSwitch.login()
-            switches.append(newSwitch)  
+            switches.append(newSwitch)
 
     else:
         logger.fatal("Missing switch definition in yaml conf file.")
@@ -325,5 +325,5 @@ if __name__ == '__main__':
     # processing is being done when clients access the /metrics endpoint
     # and CustomCollector.collect() is called
     while True:
-        time.sleep(1000)  
+        time.sleep(1000)
 
