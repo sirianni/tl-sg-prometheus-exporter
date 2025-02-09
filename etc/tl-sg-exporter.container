@@ -1,0 +1,14 @@
+# systemd container unit file for use with podman-systemd.unit
+# copy to /etc/containers/systemd
+[Container]
+ContainerName=tl-sg-exporter
+Image=docker.io/sirianni/tl-sg-prometheus-exporter
+PublishPort=9198:9198
+Volume=/etc/prometheus/tl-sg-exporter.yaml:/config.yaml
+Exec=--config /config.yaml
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
