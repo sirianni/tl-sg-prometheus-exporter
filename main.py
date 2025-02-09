@@ -202,7 +202,7 @@ class CustomCollector(object):
         # packets exports the packet counter for each port
         # the switch doesn't provide bits per port, packet sizes or other meaningful data
         # so the best you can do is measure packets per second
-        packets = CounterMetricFamily('tplink_sg_switch_port_packet_counters', 'Packet counters (rx/tx, good/bad) for each switch port', labels=['host','port','type'], unit='packets')
+        packets = CounterMetricFamily('tplink_sg_switch_port_packets', 'Packet counters (rx/tx, good/bad) for each switch port', labels=['host','port','direction','status'], unit='packets')
 
         linkSpeedList = []
         # kind of hard-coded, I know, but it shouldn't change for current switches
@@ -232,10 +232,12 @@ class CustomCollector(object):
                     logger.warning("Couldn't get any results from {}.".format(current_switch.getIP()))
                 logger.debug("Received stats:"+pprint.pformat(stats))
                 for port in stats:
-                    for pktType in ('rxGoodPkt', 'rxBadPkt', 'txGoodPkt', 'txBadPkt'):
-                        #prepare port statistics
-                        label = [current_switch.getIP(), port, pktType]
-                        packets.add_metric( label, int(stats[port][pktType]))
+                    for direction in ('tx', 'rx'):
+                        for status in ('Good', 'Bad'):
+                            pktType = direction+status+'Pkt'
+                            #prepare port statistics
+                            label = [current_switch.getIP(), port, direction, status.lower()]
+                            packets.add_metric( label, int(stats[port][pktType]))
 
                     #prepare link speed. We need to pass a dictionary with all states and booleans
                     allLinkSpeed = {}
@@ -320,10 +322,7 @@ if __name__ == '__main__':
 
     http_port = conf['http_port']
     logger.info("Starting HTTP server on port {}".format(int(http_port)))
-    start_http_server(int(http_port))
-    # this infinite loop is just to keep the server listening...
-    # processing is being done when clients access the /metrics endpoint
-    # and CustomCollector.collect() is called
-    while True:
-        time.sleep(1000)
+    server, t = start_http_server(int(http_port))
+
+    t.join()
 
